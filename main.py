@@ -2,7 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import forward_propagation
+import back_propagation
 import nn_visualizer
+import num_draw_grid
+
 
 # Initializing Shapes
 
