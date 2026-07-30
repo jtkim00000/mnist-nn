@@ -117,6 +117,13 @@ def on_move(event):
 
 def reset(event):
     global grid
+
+    grid[:] = 0          # Clear the existing array
+    img.set_data(grid)   # Update the displayed image
+    fig.canvas.draw_idle()
+
+def submit(event):
+    global grid
     output_grid()
 
     grid[:] = 0          # Clear the existing array
@@ -133,11 +140,16 @@ def output_grid():
 
 
 # Create button area
-button_ax = plt.axes([0.4, 0.02, 0.2, 0.05])  # x, y, width, height
-reset_button = Button(button_ax, "Reset")
+button_ax1 = plt.axes([0.3, 0.02, 0.2, 0.05])  # x, y, width, height
+reset_button = Button(button_ax1, "Reset")
+
+# Create button area
+button_ax2 = plt.axes([0.5, 0.02, 0.2, 0.05])  # x, y, width, height
+submit_button = Button(button_ax2, "Submit")
 
 # Connect button click
 reset_button.on_clicked(reset)
+submit_button.on_clicked(submit)
 
 
 fig.canvas.mpl_connect("button_press_event", on_press)
