@@ -13,7 +13,7 @@ import num_draw_grid
 X = np.zeros(784)
 
 # Activations
-A1 = np.zeros(64)
+A1 = np.zeros(16)
 A2 = np.zeros(16)
 A3 = np.zeros(10)
 
