@@ -5,7 +5,7 @@ from matplotlib.widgets import Button
 
 GRID_SIZE = 28
 
-fig, ax = plt.subplots(figsize=(10, 10))
+fig, ax = plt.subplots(figsize=(8, 8))
 
 grid = np.zeros((GRID_SIZE, GRID_SIZE))
 
@@ -15,7 +15,7 @@ img = ax.imshow(
     grid,
     cmap="inferno",
     vmin=-0.1,
-    vmax=1.25,
+    vmax=1.2,
     origin="upper",
     extent=(0, GRID_SIZE, GRID_SIZE, 0),
     interpolation="bicubic",
