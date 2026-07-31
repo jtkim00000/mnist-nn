@@ -48,7 +48,7 @@ if(max_weight1 > max_weight2):
     else:
         max_weight = max_weight3
 else:
-    if(max_weigth2 > max_weight3):
+    if(max_weight2 > max_weight3):
         max_weight = max_weight2
     else:
         max_weight = max_weight3
@@ -106,8 +106,8 @@ def add_line(grid_array, p0, p1, weight):
         [x0, x1],
         [y0, y1],
         linewidth=0.3,
-        color="#ff78f6",   # single purple color
-        alpha=0.05 + 0.6 * strength,
+        color="#d458ff",   # single purple color
+        alpha= 0.8 * strength,
     )
 
     ax1.add_line(line)
