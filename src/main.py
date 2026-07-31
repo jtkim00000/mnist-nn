@@ -2,6 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from matplotlib.widgets import Button
+from matplotlib.lines import Line2D
+from matplotlib import cm
+from matplotlib.colors import Normalize
+
 
 # ==================================================
 #                      PARAMS
@@ -23,17 +27,37 @@ A1 = np.zeros(16)
 A2 = np.zeros(16)
 A3 = np.zeros(10)
 
-W1 = np.ones((16, 784)) * 0.005
+W1 = np.random.rand(16, 784) * 0.005
 B1 = np.random.rand(16,  1)
 
-W2 = np.ones((16, 16)) * 0.005
+W2 = np.random.rand(16, 16) * 0.005
 B2 = np.random.rand(16, 1)
 
-W3 = np.ones((10, 16)) * 0.005
+W3 = np.random.rand(10, 16) * 0.005
 B3 = np.random.rand(10, 1)
 
+max_weight = 0
+
+max_weight1 = np.max(W1) * 200
+max_weight2 = np.max(W2) * 200
+max_weight3 = np.max(W3) * 200
+
+if(max_weight1 > max_weight2):
+    if(max_weight1 > max_weight3):
+        max_weight = max_weight1
+    else:
+        max_weight = max_weight3
+else:
+    if(max_weigth2 > max_weight3):
+        max_weight = max_weight2
+    else:
+        max_weight = max_weight3
+
 circles_to_draw = []
+
+#lines
 lines_to_draw = []
+layer_positions = []
 
 nn_grid = np.full((NN_GRID_HEIGHT, NN_GRID_WIDTH), 0.0, dtype=float)
 draw_grid = np.zeros((DRAW_GRID_SIZE, DRAW_GRID_SIZE))
@@ -71,41 +95,24 @@ def add_circle_with_glow(grid_array, center_x, center_y, radius, activation, glo
     combined_mask = core_mask + glow_mask
     return np.maximum(grid_array, combined_mask)
 
-def add_line_with_glow(grid_array, p0, p1, width, activation, glow_intensity=2.0):
-    y_coords, x_coords = np.ogrid[:NN_GRID_HEIGTH, :NN_GRID_WIDTH]
+def add_line(grid_array, p0, p1, weight):
+
     x0, y0 = p0
     x1, y1 = p1
-    dx, dy = x1 - x0, y1 - y0
-    line_len_sq = dx**2 + dy**2
 
-    if line_len_sq == 0:
-        dist = np.sqrt((x_coords - x0)**2 + (y_coords - y0)**2)
-    else:
-        t = ((x_coords - x0) * dx + (y_coords - y0) * dy) / line_len_sq
-        t = np.clip(t, 0.0, 1)
-        closest_x = x0 + t * dx
-        closest_y = y0 + t * dy
-        dist = np.sqrt((x_coords - closest_x)**2 + (y_coords - closest_y)**2)
-    core_mask = np.where(dist <= width, activation, 0.0)
+    strength = abs(weight) / max_weight
 
-    dist_outside = np.maximum(dist - width, 0)
-    glow_fade = np.exp(-dist_outside / glow_intensity)
-    glow_mask = np.where(dist > width, activation * glow_fade, 0.0)
+    line = Line2D(
+        [x0, x1],
+        [y0, y1],
+        linewidth=0.3,
+        color="#ff78f6",   # single purple color
+        alpha=0.05 + 0.6 * strength,
+    )
 
-    combined_mask = core_mask + glow_mask
-    return np.maximum(grid_array, combined_mask)
+    ax1.add_line(line)
 
 def render_shapes(nn_grid):
-    for line in lines_to_draw:
-        nn_grid = add_line_with_glow(
-            nn_grid,
-            p0=line["p0"],
-            p1=line["p1"],
-            width=line["width"],
-            activation=line["activation"],
-            glow_intensity=1
-        )
-
     for circle in circles_to_draw:
         nn_grid = add_circle_with_glow(
             nn_grid,
@@ -118,47 +125,118 @@ def render_shapes(nn_grid):
 
     return nn_grid
 
+def render_connections():
+    for line in lines_to_draw:
+        add_line(
+            None,
+            p0=line["p0"],
+            p1=line["p1"],
+            weight=line["weight"],
+        )
+
 def init_neurons(N0, N1, N2, N3):
     border = 5
 
     max_grid = NN_GRID_HEIGHT - border * 2
 
+    layer0 = []
     for i in range(len(N0)):
+        y = border + (i * (max_grid / (1 + len(N0))) + max_grid / (1 + len(N0)))
+        if((i % 49 == 0) or (i == (len(N0) - 1))):
+            layer0.append((20, y))
         circles_to_draw.append(
             {
                 "x": 20, 
-                "y": border + (i * (max_grid / (1 + len(N0))) + max_grid / (1 + len(N0))), 
+                "y": y, 
                 "radius": (max_grid / (6 * len(N0))), 
                 "activation": (N0[i] + 0.2)
             }
         )
+
+    layer1 = []
     for i in range(len(N1)):
+        y = border + (i * (max_grid / (1 + len(N1))) + max_grid / (1 + len(N1)))
+        
+        layer1.append((70, y))
         circles_to_draw.append(
             {
                 "x": 70, 
-                "y": border + (i * (max_grid / (1 + len(N1))) + max_grid / (1 + len(N1))), 
+                "y": y, 
                 "radius": (max_grid / (6 * len(N1))), 
                 "activation": (N1[i] + 0.2)
             }
         )
+
+    layer2 = []
     for i in range(len(N2)):
+        y = border + (i * (max_grid / (1 + len(N2))) + max_grid / (1 + len(N2)))
+        layer2.append((120, y))
         circles_to_draw.append(
             {
                 "x": 120, 
-                "y": border + (i * (max_grid / (1 + len(N2))) + max_grid / (1 + len(N2))), 
+                "y": y, 
                 "radius": (max_grid / (6 * len(N2))), 
                 "activation": (N2[i] + 0.2)
             }
         )
+    
+    layer3 = []
     for i in range(len(N3)):
+        y = border + 5 + (i * ((max_grid - 10) / (1 + len(N3))) + (max_grid - 10) / (1 + len(N3)))
+
+        layer3.append((170, y))
         circles_to_draw.append(
             {
                 "x": 170, 
-                "y": border + 5 + (i * ((max_grid - 10) / (1 + len(N3))) + (max_grid - 10) / (1 + len(N3))), 
+                "y": y, 
                 "radius": (max_grid / (6 * len(N2))), 
                 "activation": (N3[i] + 0.2)
             }
         )
+
+    layer_positions.append(layer0)
+    layer_positions.append(layer1)
+    layer_positions.append(layer2)
+    layer_positions.append(layer3)
+
+def create_connections():
+    global lines_to_draw, W1, W2, W3
+
+    lines_to_draw.clear()
+
+    for layer in range(len(layer_positions)-1):
+
+        current_layer = layer_positions[layer]
+        next_layer = layer_positions[layer+1]
+
+        for i, neuron1 in enumerate(current_layer):
+            for j, neuron2 in enumerate(next_layer):
+
+                # weight_strength = min(abs(W[neuron2][neuron1])*5,1)
+                if(layer == 0):
+                    lines_to_draw.append(
+                        {
+                            "p0": neuron1,
+                            "p1": neuron2,
+                            "weight": (200 * W1[j][i])
+                        }
+                    )
+                elif(layer == 1):
+                    lines_to_draw.append(
+                        {
+                            "p0": neuron1,
+                            "p1": neuron2,
+                            "weight": (200 * W2[j][i])
+                        }
+                    )
+                else:
+                    lines_to_draw.append(
+                        {
+                            "p0": neuron1,
+                            "p1": neuron2,
+                            "weight": (200 * W3[j][i])
+                        }
+                    )
 
 # From Num Draw Grid
 def process(event):
@@ -266,12 +344,14 @@ def inference():
 
     circles_to_draw.clear()
 
+    layer_positions.clear()
+
     init_neurons(X, A1, A2, A3)
 
     nn_grid[:] = 0
     nn_grid = render_shapes(nn_grid)
 
-    img1.set_data(nn_grid)
+    img1.set_data(np.ma.masked_where(nn_grid == 0, nn_grid))
     fig.canvas.draw_idle()
 
 
@@ -338,8 +418,10 @@ init_neurons(np.zeros(784), A1, A2, A3)
 
 nn_grid = render_shapes(nn_grid)
 
+create_connections()
+
 img1 = ax1.imshow(
-    nn_grid,
+    np.ma.masked_where(nn_grid == 0, nn_grid),
     cmap=COLORMAP,
     vmin=-0.05,
     vmax=1.4,
@@ -347,6 +429,8 @@ img1 = ax1.imshow(
     extent=(0, NN_GRID_WIDTH, 0, NN_GRID_HEIGHT),
     interpolation="bicubic",
 )
+
+render_connections()
 
 img2 = ax2.imshow(
     draw_grid,
