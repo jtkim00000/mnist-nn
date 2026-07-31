@@ -1,19 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-GRID_SIZE = 120
-
 GRID_WIDTH = 200
 GRID_HEIGHT = 120
-
-BACKGROUND_ACTIVATION = 0.0
 COLORMAP = "inferno"
 
 circles_to_draw = []
 lines_to_draw = []
 
 
-grid = np.full((GRID_HEIGHT, GRID_WIDTH), BACKGROUND_ACTIVATION, dtype=float)
+grid = np.full((GRID_HEIGHT, GRID_WIDTH), 0.0, dtype=float)
 
 def add_circle_with_glow(grid_array, center_x, center_y, radius, activation, glow_intensity=2.5):
     y_coords, x_coords = np.ogrid[:GRID_HEIGHT, :GRID_WIDTH]
@@ -67,15 +63,16 @@ def render_shapes(grid):
             center_y=circle["y"],
             radius=circle["radius"],
             activation=circle["activation"],
-            glow_intensity=1 # Set default glow softness
+            glow_intensity=1.0 # Set default glow softness
         )
 
     return grid
 
 # Only for 4 layer NNs
-def init_neurons(N0, N1, N2, N3, border):
+def init_neurons(N0, N1, N2, N3):
+    border = 5
 
-    max_grid = GRID_SIZE - border * 2
+    max_grid = GRID_HEIGHT - border * 2
 
     for i in range(len(N0)):
         circles_to_draw.append(
@@ -124,7 +121,7 @@ N1 = np.random.rand(16)
 N2 = np.random.rand(16)
 N3 = np.random.rand(10)
 
-init_neurons(N0, N1, N2, N3, 5)
+init_neurons(N0, N1, N2, N3)
 
 grid = render_shapes(grid)
 

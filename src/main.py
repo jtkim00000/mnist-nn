@@ -1,34 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-import forward_propagation
-import back_propagation
-import nn_visualizer
-import num_draw_grid
+COLORMAP = "inferno"
+
+NN_GRID_WIDTH = 200
+NN_GRID_HEIGHT = 120
+
+DRAW_GRID_SIZE = 120
+
+nn_grid = np.full((NN_GRID_HEIGHT, NN_GRID_WIDTH), 0.0, dtype=float)
 
 
-# Initializing Shapes
 
-# Input Vector
-X = np.zeros(784)
-
-# Activations
-A1 = np.zeros(16)
-A2 = np.zeros(16)
-A3 = np.zeros(10)
-
-# Weights
-W1 = np.zeros(64, 784)
-W2 = np.zeros(16, 64)
-W3 = np.zeros(10, 16)
-
-# Biases
-B1 = np.zeros(64)
-B2 = np.zeros(16)
-B3 = np.zeros(10)
-
-def randomize():
-    X = np.random.rand()
 
 
 
