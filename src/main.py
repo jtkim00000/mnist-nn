@@ -18,6 +18,20 @@ DRAW_GRID_SIZE = 28
 #                  INITIALIZATION
 # ==================================================
 
+X = np.zeros(784)
+A1 = np.zeros(16)
+A2 = np.zeros(16)
+A3 = np.zeros(10)
+
+W1 = np.ones((16, 784)) * 0.005
+B1 = np.random.rand(16,  1)
+
+W2 = np.ones((16, 16)) * 0.005
+B2 = np.random.rand(16, 1)
+
+W3 = np.ones((10, 16)) * 0.005
+B3 = np.random.rand(10, 1)
+
 circles_to_draw = []
 lines_to_draw = []
 
@@ -29,6 +43,22 @@ last_draw_cell = None
 # ==================================================
 #                     FUNCTIONS
 # ==================================================
+
+# From Forward Propagation
+
+def col_operation(A, W, B):
+    X = (W @ A) + B
+
+    Y = 1 / (1 + np.exp(-X))
+
+    return Y
+
+def forward_prop(X, W1, B1, W2, B2, W3, B3):
+    A1 = col_operation(X, W1, B1)
+    A2 = col_operation(A1, W2, B2)
+    A3 = col_operation(A2, W3, B3)
+
+    return A1, A2, A3
 
 # From Neural Network Visualization
 def add_circle_with_glow(grid_array, center_x, center_y, radius, activation, glow_intensity=2.5):
@@ -178,7 +208,7 @@ def process(event):
                     if 0 <= r < DRAW_GRID_SIZE and 0 <= c < DRAW_GRID_SIZE:
                         draw_grid[r, c] = max(draw_grid[r, c], value)
 
-        img.set_data(draw_grid)
+        img2.set_data(draw_grid)
         fig.canvas.draw_idle()
 
 def get_line(r0, c0, r1, c1):
@@ -213,22 +243,37 @@ def reset(event):
     global draw_grid
 
     draw_grid[:] = 0          # Clear the existing array
-    img.set_data(draw_grid)   # Update the displayed image
+    img2.set_data(draw_grid)   # Update the displayed image
     fig.canvas.draw_idle()
 
 def submit(event):
     global draw_grid
-    output_grid()
+
+    inference()
 
     draw_grid[:] = 0          # Clear the existing array
-    img.set_data(draw_grid)   # Update the displayed image
+    img2.set_data(draw_grid)   # Update the displayed image
     fig.canvas.draw_idle()
 
-def output_grid():
-    for i in range(DRAW_GRID_SIZE):
-        for j in range(DRAW_GRID_SIZE):
-            print(draw_grid[i][j], end=" ")
-        print("\n")
+# New
+
+def inference():
+    global X, A1, A2, A3, nn_grid
+
+    X = draw_grid.flatten().reshape(784,1)
+
+    A1, A2, A3 = forward_prop(X, W1, B1, W2, B2, W3, B3)
+
+    circles_to_draw.clear()
+
+    init_neurons(X, A1, A2, A3)
+
+    nn_grid[:] = 0
+    nn_grid = render_shapes(nn_grid)
+
+    img1.set_data(nn_grid)
+    fig.canvas.draw_idle()
+
 
 # ==================================================
 #                     PLOTTING
@@ -289,16 +334,11 @@ fig.canvas.mpl_connect("motion_notify_event", on_move)
 #                     MAIN LOOP
 # ==================================================
 
-N0 = np.random.rand(784)
-N1 = np.random.rand(16)
-N2 = np.random.rand(16)
-N3 = np.random.rand(10)
-
-init_neurons(N0, N1, N2, N3)
+init_neurons(np.zeros(784), A1, A2, A3)
 
 nn_grid = render_shapes(nn_grid)
 
-img = ax1.imshow(
+img1 = ax1.imshow(
     nn_grid,
     cmap=COLORMAP,
     vmin=-0.05,
@@ -308,7 +348,7 @@ img = ax1.imshow(
     interpolation="bicubic",
 )
 
-img = ax2.imshow(
+img2 = ax2.imshow(
     draw_grid,
     cmap=COLORMAP,
     vmin=-0.05,
