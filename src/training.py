@@ -27,14 +27,14 @@ Y_test = Y[60000:]
 
 accuracy = 0.0
 
-W1 = np.random.rand(16, 784) * 0.005
-B1 = np.random.rand(16,  1)
+W1 = np.random.randn(16,784) * np.sqrt(1/784)
+B1 = np.zeros((16,  1))
 
-W2 = np.random.rand(16, 16) * 0.005
-B2 = np.random.rand(16, 1)
+W2 = np.random.randn(16,16) * np.sqrt(1/16)
+B2 = np.zeros((16, 1))
 
-W3 = np.random.rand(10, 16) * 0.005
-B3 = np.random.rand(10, 1)
+W3 = np.random.randn(10,16) * np.sqrt(1/16)
+B3 = np.zeros((10, 1))
 
 # ==================================================
 #                  INITIAL FUNCTIONS
@@ -69,7 +69,7 @@ def calculate_accuracy(X_data, Y_data, W1, B1, W2, B2, W3, B3):
 
         X = X_data[i].reshape(784,1)
 
-        output, _, _ = forward_prop(
+        _, _, output = forward_prop(
             X,
             W1,B1,
             W2,B2,
@@ -83,13 +83,38 @@ def calculate_accuracy(X_data, Y_data, W1, B1, W2, B2, W3, B3):
 
     return correct / len(X_data)
 
-def back_prop():
+def back_prop(X, target, A1, A2, A3, W1, W2, W3):
+
+    dA3 = A3 - target
+    dZ3 = dA3 * A3 * (1 - A3)
+
+    dW3 = dZ3 @ A2.T
+    dB3 = dZ3
+
+    dA2 = W3.T @ dZ3
+
+    dZ2 = dA2 * A2 * (1 - A2)
+
+    dW2 = dZ2 @ A1.T
+    dB2 = dZ2
+
+    dA1 = W2.T @ dZ2
+
+    dZ1 = dA1 * A1 * (1 - A1)
+
+    dW1 = dZ1 @ X.T
+    dB1 = dZ1
+
+    return dW1, dB1, dW2, dB2, dW3, dB3
 
 # ==================================================
 #                  TRAINING LOOP
 # ==================================================
 
-while accuracy < 0.95:
+learning_rate = 0.05
+epoch = 0
+
+while accuracy < 0.946:
 
     epoch += 1
 
@@ -108,7 +133,7 @@ while accuracy < 0.95:
             W3,B3
         )
 
-        dW1,dB1,dW2,dB2,dW3,dB3 = backward_prop(
+        dW1,dB1,dW2,dB2,dW3,dB3 = back_prop(
             X,
             target,
             A1,
@@ -117,8 +142,6 @@ while accuracy < 0.95:
             W1,W2,W3
         )
 
-
-        # Update
         W1 -= learning_rate*dW1
         B1 -= learning_rate*dB1
 
@@ -147,7 +170,7 @@ print("Training complete!")
 #                  SAVING PARAMETERS
 # ==================================================
 
-if(accuracy >= 0.95):
+if(accuracy >= 0.946):
     np.savez(
         "mnist_network.npz",
         W1=W1,
