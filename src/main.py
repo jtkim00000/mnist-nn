@@ -5,7 +5,7 @@ from matplotlib.widgets import Button
 from matplotlib.lines import Line2D
 from matplotlib import cm
 from matplotlib.colors import Normalize
-
+from scipy.ndimage import zoom
 
 # ==================================================
 #                      PARAMS
@@ -40,20 +40,9 @@ B3 = data["B3"]
 
 max_weight = 0
 
-max_weight1 = np.max(W1)
-max_weight2 = np.max(W2)
-max_weight3 = np.max(W3)
-
-if(max_weight1 > max_weight2):
-    if(max_weight1 > max_weight3):
-        max_weight = max_weight1
-    else:
-        max_weight = max_weight3
-else:
-    if(max_weight2 > max_weight3):
-        max_weight = max_weight2
-    else:
-        max_weight = max_weight3
+max_weight0 = np.max(abs(W1))
+max_weight1 = np.max(abs(W2))
+max_weight2 = np.max(abs(W3))
 
 circles_to_draw = []
 
@@ -86,6 +75,51 @@ def forward_prop(X, W1, B1, W2, B2, W3, B3):
 
     return A1, A2, A3
 
+def preprocess_image(img):
+
+    # Find digit pixels
+    coords = np.argwhere(img > 0)
+
+    # Empty image
+    if len(coords) == 0:
+        return img
+
+    # Bounding box
+    y_min, x_min = coords.min(axis=0)
+    y_max, x_max = coords.max(axis=0)
+
+    cropped = img[
+        y_min:y_max+1,
+        x_min:x_max+1
+    ]
+
+    # Resize while preserving aspect ratio
+    h, w = cropped.shape
+
+    scale = 20 / max(h, w)
+
+    resized = zoom(
+        cropped,
+        scale,
+        order=1
+    )
+
+    # Create MNIST-sized canvas
+    output = np.zeros((28,28))
+
+    h, w = resized.shape
+
+    # Center it
+    y_offset = (28 - h) // 2
+    x_offset = (28 - w) // 2
+
+    output[
+        y_offset:y_offset+h,
+        x_offset:x_offset+w
+    ] = resized
+
+    return output
+
 # From Neural Network Visualization
 def add_circle_with_glow(grid_array, center_x, center_y, radius, activation, glow_intensity=2.5):
     y_coords, x_coords = np.ogrid[:NN_GRID_HEIGHT, :NN_GRID_WIDTH]
@@ -97,19 +131,24 @@ def add_circle_with_glow(grid_array, center_x, center_y, radius, activation, glo
     combined_mask = core_mask + glow_mask
     return np.maximum(grid_array, combined_mask)
 
-def add_line(grid_array, p0, p1, weight):
+def add_line(grid_array, p0, p1, weight, lay_num):
 
     x0, y0 = p0
     x1, y1 = p1
 
-    strength = abs(weight) / max_weight
+    if(lay_num == 0):
+        strength = abs(weight) / max_weight0
+    elif(lay_num == 1):
+        strength = abs(weight) / max_weight1
+    else:
+        strength = abs(weight) / max_weight2
 
     line = Line2D(
         [x0, x1],
         [y0, y1],
         linewidth=0.3,
         color="#d458ff",   # single purple color
-        alpha= 0.8 * strength,
+        alpha= 0.3 + 0.7 * strength,
     )
 
     ax1.add_line(line)
@@ -134,6 +173,7 @@ def render_connections():
             p0=line["p0"],
             p1=line["p1"],
             weight=line["weight"],
+            lay_num=line["lay_num"]
         )
 
 def init_neurons(N0, N1, N2, N3):
@@ -220,7 +260,8 @@ def create_connections():
                         {
                             "p0": neuron1,
                             "p1": neuron2,
-                            "weight": W1[j][i]
+                            "weight": W1[j][i],
+                            "lay_num": 0
                         }
                     )
                 elif(layer == 1):
@@ -228,7 +269,8 @@ def create_connections():
                         {
                             "p0": neuron1,
                             "p1": neuron2,
-                            "weight": W2[j][i]
+                            "weight": W2[j][i],
+                            "lay_num": 1
                         }
                     )
                 else:
@@ -236,7 +278,8 @@ def create_connections():
                         {
                             "p0": neuron1,
                             "p1": neuron2,
-                            "weight": W3[j][i]
+                            "weight": W3[j][i],
+                            "lay_num": 2
                         }
                     )
 
@@ -338,9 +381,13 @@ def submit(event):
 # New
 
 def inference():
-    global X, A1, A2, A3, nn_grid
+    global X, A1, A2, A3, nn_grid, draw_grid
+
+    draw_grid = preprocess_image(draw_grid)
 
     X = draw_grid.flatten().reshape(784,1)
+
+    X = np.clip(X - 0.2, 0, 1)
 
     A1, A2, A3 = forward_prop(X, W1, B1, W2, B2, W3, B3)
 
@@ -352,6 +399,10 @@ def inference():
 
     nn_grid[:] = 0
     nn_grid = render_shapes(nn_grid)
+
+    prediction_text.set_text(
+        f"Number Written: {A3.argmax()}"
+    )
 
     img1.set_data(np.ma.masked_where(nn_grid == 0, nn_grid))
     fig.canvas.draw_idle()
@@ -442,6 +493,14 @@ img2 = ax2.imshow(
     origin="upper",
     extent=(0, DRAW_GRID_SIZE, DRAW_GRID_SIZE, 0),
     interpolation="bicubic",
+)
+
+prediction_text = ax1.text(
+    215,
+    90,
+    "",
+    fontsize=12,
+    color="white"
 )
 
 
