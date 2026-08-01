@@ -27,20 +27,22 @@ A1 = np.zeros(16)
 A2 = np.zeros(16)
 A3 = np.zeros(10)
 
-W1 = np.random.rand(16, 784) * 0.005
-B1 = np.random.rand(16,  1)
+data = np.load("mnist_network.npz")
 
-W2 = np.random.rand(16, 16) * 0.005
-B2 = np.random.rand(16, 1)
+W1 = data["W1"]
+B1 = data["B1"]
 
-W3 = np.random.rand(10, 16) * 0.005
-B3 = np.random.rand(10, 1)
+W2 = data["W2"]
+B2 = data["B2"]
+
+W3 = data["W3"]
+B3 = data["B3"]
 
 max_weight = 0
 
-max_weight1 = np.max(W1) * 200
-max_weight2 = np.max(W2) * 200
-max_weight3 = np.max(W3) * 200
+max_weight1 = np.max(W1)
+max_weight2 = np.max(W2)
+max_weight3 = np.max(W3)
 
 if(max_weight1 > max_weight2):
     if(max_weight1 > max_weight3):
@@ -218,7 +220,7 @@ def create_connections():
                         {
                             "p0": neuron1,
                             "p1": neuron2,
-                            "weight": (200 * W1[j][i])
+                            "weight": W1[j][i]
                         }
                     )
                 elif(layer == 1):
@@ -226,7 +228,7 @@ def create_connections():
                         {
                             "p0": neuron1,
                             "p1": neuron2,
-                            "weight": (200 * W2[j][i])
+                            "weight": W2[j][i]
                         }
                     )
                 else:
@@ -234,7 +236,7 @@ def create_connections():
                         {
                             "p0": neuron1,
                             "p1": neuron2,
-                            "weight": (200 * W3[j][i])
+                            "weight": W3[j][i]
                         }
                     )
 
@@ -447,10 +449,3 @@ ax1.set_xticks([])
 ax1.set_yticks([])
 ax1.axis("off")
 plt.show()
-
-
-
-
-
-
-
