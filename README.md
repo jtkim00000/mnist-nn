@@ -18,7 +18,7 @@ For any NN of this data set, we must have 784 input neurons, corresponding to th
 In general the choice for dimensions regarding the hidden layers was mostly irrelevant, as I am not so concerned about NN performance and accuracy, as this is mainly just to provide a visualization for my NIPU project.
 
 ## Forward Propagation
-Forward propagation is the most trivial part of the NN. In simple terms, forward propagation is the act of a NN performing its intended operation. In a way you can simply think of a NN as a very complex function. Something that take in an input, and spits out some output based on that input.
+Forward propagation is the most trivial part of the NN. In simple terms, forward propagation is the act of a NN performing its intended operation. In a way you can simply think of a NN as a very complex function. Something that takes in an input, and spits out some output based on that input.
 
 We know that the activations in any hidden or output layer are dependent on the activations, weights, and biases of the previous layer. Additionally you can use a sigmoid or ReLU to force your activations into a given range. I opted for the sigmoid for simplicity, however this decision is mostly unimportant for reasons stated above. 
 
