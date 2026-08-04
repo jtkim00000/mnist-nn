@@ -1,3 +1,5 @@
-# Custom MNIST NN
+# MNIST Neural Network + Forward Propagation Visualizer
 
-This is a basic MNIST Neural Network built for my large project "NIPU"
+This documentation described my MNIST Neural Network + Forward Propagation Visualizer project. This project is part 1/4 of my NIPU project. This is a classic number recognizer neural network using the MNIST dataset. Additionally I created a cool visualizer for the forward propagation and the ability to write hand written digits for testing the neural network. 
+
+![Image5](docs/image5.png)
