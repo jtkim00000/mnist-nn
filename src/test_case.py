@@ -13,7 +13,9 @@ data = np.array(data)
 
 X = mnist.data.astype(np.float32) / 255.0
 
-test_case = X[39]
+test_case = X[0:1023]
+
+print(test_case[50])
 
 np.savez(
     "test_case.npz",
